@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Avatar Tech | Premium Store</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <style>
+      /* Modern Login Button Style */
+      .user-login-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid #333;
+        color: #fff;
+        padding: 8px 18px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.3s;
+      }
+      .user-login-btn:hover {
+        background: #39afc1;
+        border-color: #39afc1;
+        color: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(57, 175, 193, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-glow">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+
+    <div class="top-bar">
+      <div>Welcome to Avatar Tech - Nepal's #1 Tech Store</div>
+      <div
+        style="margin-left: auto; display: flex; align-items: center; gap: 20px"
+      >
+        <a href="admin.html" style="color: #555; font-size: 0.8rem">Admin</a>
+        <a href="#" class="user-login-btn">
+          <i class="ri-user-smile-line"></i> Login / Sign Up
+        </a>
+      </div>
+    </div>
+
+    <header class="middle-header">
+      <div class="logo">
+        <a href="index.html"><img src="image/logo.jpg" alt="Avatar Tech" /></a>
+      </div>
+      <div class="search-box">
+        <input
+          type="text"
+          id="search"
+          placeholder="Search products..."
+          onkeyup="app.search()"
+        />
+        <button class="search-btn"><i class="ri-search-line"></i></button>
+      </div>
+      <div class="header-actions">
+        <div class="action-icon">
+          <i
+            class="ri-shopping-cart-2-line"
+            onclick="window.location.href='cart.html'"
+          ></i>
+          <span class="count-badge" id="cart-count">0</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="bottom-nav">
+      <div class="cat-btn"><i class="ri-grid-fill"></i>   Categories</div>
+      <div class="nav-links">
+        <a onclick="app.show('home')" id="nav-home" class="nav-link active"
+          >Home</a
+        >
+        <a onclick="app.show('shop')" id="nav-shop" class="nav-link">Shop</a>
+        <a onclick="app.show('contact')" id="nav-contact" class="nav-link"
+          >Contact</a
+        >
+      </div>
+    </div>
+
+    <div id="home" class="page-section">
+      <div class="hero-wrapper">
+        <div class="sidebar" id="cat-sidebar"></div>
+        <div class="slider-area">
+          <div
+            class="slide active"
+            style="background-image: url('image/banner 1.png')"
+          >
+            <div class="slide-content">
+              <span class="banner-tag">NEW ARRIVALS</span>
+              <h1 class="banner-title">NEXT GEN<br />GAMING</h1>
+              <button
+                onclick="app.show('shop')"
+                class="add-cart-btn"
+                style="width: auto; padding: 0 40px"
+              >
+                Shop Now
+              </button>
+            </div>
+          </div>
+          <div
+            class="slide"
+            style="background-image: url('image/banner 2.png')"
+          >
+            <div class="slide-content">
+              <span class="banner-tag">EXCLUSIVE DEAL</span>
+              <h1 class="banner-title">ULTIMATE<br />PERFORMANCE</h1>
+              <button
+                onclick="app.show('shop')"
+                class="add-cart-btn"
+                style="width: auto; padding: 0 40px"
+              >
+                Explore
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-title">Featured Products</div>
+        </div>
+        <div class="grid" id="featured-grid"></div>
+      </div>
+    </div>
+
+    <div id="shop" class="page-section" style="display: none">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-title">All Products</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px">
+          <aside
+            class="sidebar"
+            style="background: transparent; border: none; width: 100%"
+          >
+            <h3 style="color: white; margin-bottom: 15px">Filters</h3>
+            <div
+              id="filter-cat-list"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                color: #aaa;
+              "
+            ></div>
+          </aside>
+          <div class="grid" id="shop-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="contact" class="page-section" style="display: none">
+      <div class="container">
+        <div class="contact-hero" style="text-align: center">
+          <h1>Contact Us</h1>
+          <p>9812345678 | support@avatartech.com</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div
+        class="container"
+        style="
+          text-align: center;
+          color: #555;
+          border-top: 1px solid #111;
+          padding-top: 40px;
+        "
+      >
+        © 2025 Avatar Tech.
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
