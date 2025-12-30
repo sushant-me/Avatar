@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout | Avatar Tech</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <style>
+      body {
+        background-color: #0a0f14;
+        color: white;
+        font-family: "Outfit", sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        padding: 20px 5%;
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+      }
+      h2 {
+        color: #39afc1;
+        border-bottom: 1px solid #333;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+      }
+
+      /* Layout */
+      .checkout-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 40px;
+      }
+
+      /* Cart Items */
+      .cart-item {
+        background: #141b22;
+        border: 1px solid #2d3748;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .cart-item img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        background: white;
+        border-radius: 4px;
+      }
+
+      /* Forms */
+      .form-box {
+        background: #1f2933;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #333;
+      }
+      input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        background: #0a0f14;
+        border: 1px solid #333;
+        color: white;
+        border-radius: 6px;
+      }
+      input:focus {
+        border-color: #39afc1;
+        outline: none;
+      }
+
+      /* Payment Selectors */
+      .payment-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .pay-card {
+        background: #0a0f14;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        text-align: center;
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+      }
+      .pay-card img {
+        height: 40px;
+        object-fit: contain;
+        margin-bottom: 5px;
+      }
+      .pay-card:hover {
+        border-color: #777;
+      }
+      .pay-card.active {
+        border-color: #39afc1;
+        background: rgba(57, 175, 193, 0.1);
+        box-shadow: 0 0 10px rgba(57, 175, 193, 0.2);
+      }
+
+      /* QR Section */
+      .qr-section {
+        text-align: center;
+        margin-top: 20px;
+        padding: 20px;
+        background: #000;
+        border-radius: 8px;
+        border: 1px dashed #555;
+        display: none;
+      }
+      .qr-section img {
+        width: 200px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .checkout-btn {
+        width: 100%;
+        background: #00d26a;
+        color: white;
+        border: none;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      .checkout-btn:hover {
+        background: #00b359;
+      }
+
+      @media (max-width: 768px) {
+        .checkout-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div style="font-weight: 800; font-size: 1.2rem">Avatar Tech</div>
+      <a href="index.html" style="color: #94a3b8; text-decoration: none"
+        >Continue Shopping</a
+      >
+    </div>
+
+    <div class="container">
+      <h2>Checkout</h2>
+
+      <div class="checkout-grid">
+        <div>
+          <div class="form-box">
+            <h3 style="margin-top: 0">1. Delivery Details</h3>
+            <input type="text" id="c-name" placeholder="Full Name" required />
+            <input
+              type="tel"
+              id="c-phone"
+              placeholder="Phone Number"
+              required
+            />
+            <input
+              type="text"
+              id="c-address"
+              placeholder="Delivery Address (City, Street)"
+              required
+            />
+          </div>
+
+          <div class="form-box" style="margin-top: 20px">
+            <h3 style="margin-top: 0">2. Payment Method</h3>
+
+            <div class="payment-options">
+              <div class="pay-card active" onclick="selectPayment('COD', this)">
+                <i
+                  class="ri-money-dollar-circle-line"
+                  style="font-size: 2rem; color: #00d26a"
+                ></i>
+                <span style="font-size: 0.8rem; font-weight: bold"
+                  >Cash On Delivery</span
+                >
+              </div>
+              <div class="pay-card" onclick="selectPayment('Esewa', this)">
+                <img src="image/esewa 1.jpeg" alt="Esewa" />
+                <span style="font-size: 0.8rem; font-weight: bold">Esewa</span>
+              </div>
+              <div class="pay-card" onclick="selectPayment('Khalti', this)">
+                <img src="image/khalti 1.jpg" alt="Khalti" />
+                <span style="font-size: 0.8rem; font-weight: bold">Khalti</span>
+              </div>
+            </div>
+
+            <div id="payment-info">
+              <p id="cod-msg" style="color: #aaa; font-size: 0.9rem">
+                <i class="ri-truck-line"></i> You can pay cash when the product
+                arrives at your doorstep.
+              </p>
+
+              <div id="qr-box" class="qr-section">
+                <div style="color: #39afc1; margin-bottom: 10px">
+                  Scan to Pay
+                </div>
+                <img id="qr-img" src="" alt="Payment QR" />
+                <input
+                  type="text"
+                  id="txn-id"
+                  placeholder="Enter Transaction / Reference ID"
+                  style="text-align: center; border: 1px solid #39afc1"
+                />
+                <div style="font-size: 0.8rem; color: #888">
+                  *Verification will be done by Admin
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="form-box">
+            <h3 style="margin-top: 0">Order Summary</h3>
+            <div id="cart-list"></div>
+
+            <div
+              style="
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #333;
+                display: flex;
+                justify-content: space-between;
+                font-size: 1.2rem;
+                font-weight: bold;
+              "
+            >
+              <span>Total</span>
+              <span style="color: #39afc1" id="grand-total">NPR 0</span>
+            </div>
+
+            <button class="checkout-btn" onclick="placeOrder()">
+              Place Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Firebase Setup
+      const firebaseConfig = {
+        apiKey: "AIzaSyBSgImWKo8b68SWnoMqKLc2y4peJlp5vlU",
+        authDomain: "avatartech-23cf7.firebaseapp.com",
+        databaseURL: "https://avatartech-23cf7-default-rtdb.firebaseio.com",
+        projectId: "avatartech-23cf7",
+        storageBucket: "avatartech-23cf7.firebasestorage.app",
+        messagingSenderId: "703078443284",
+        appId: "1:703078443284:web:c8fb8148229ed1daa03a01",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      let selectedMethod = "COD";
+
+      // Load Cart
+      let cart = JSON.parse(localStorage.getItem("avatarCart")) || [];
+      const list = document.getElementById("cart-list");
+      const totalEl = document.getElementById("grand-total");
+
+      function renderCart() {
+        if (cart.length === 0) {
+          document.querySelector(".container").innerHTML =
+            '<div style="text-align:center; margin-top:50px;"><h2>Cart is Empty</h2><a href="index.html" style="color:#39afc1;">Go Shopping</a></div>';
+          return;
+        }
+        let total = 0;
+        list.innerHTML = cart
+          .map((item, index) => {
+            total += item.price * item.qty;
+            return `
+                <div class="cart-item">
+                    <img src="${item.img}">
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; font-size:0.9rem;">${
+                          item.name
+                        }</div>
+                        <div style="color:#888; font-size:0.8rem;">x${
+                          item.qty
+                        }</div>
+                    </div>
+                    <div>${(item.price * item.qty).toLocaleString()}</div>
+                    <i class="ri-delete-bin-line" onclick="removeItem(${index})" style="color:#ff0055; cursor:pointer; margin-left:10px;"></i>
+                </div>`;
+          })
+          .join("");
+        totalEl.innerText = "NPR " + total.toLocaleString();
+      }
+
+      function removeItem(idx) {
+        cart.splice(idx, 1);
+        localStorage.setItem("avatarCart", JSON.stringify(cart));
+        renderCart();
+      }
+
+      // Payment Logic
+      function selectPayment(method, el) {
+        selectedMethod = method;
+
+        // UI Toggle
+        document
+          .querySelectorAll(".pay-card")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+
+        const qrBox = document.getElementById("qr-box");
+        const codMsg = document.getElementById("cod-msg");
+        const qrImg = document.getElementById("qr-img");
+
+        if (method === "COD") {
+          qrBox.style.display = "none";
+          codMsg.style.display = "block";
+        } else {
+          codMsg.style.display = "none";
+          qrBox.style.display = "block";
+
+          // Set QR Image based on selection
+          if (method === "Esewa") qrImg.src = "image/Esewa.jpeg";
+          if (method === "Khalti") qrImg.src = "image/Khalti.jpeg";
+        }
+      }
+
+      function placeOrder() {
+        const name = document.getElementById("c-name").value;
+        const phone = document.getElementById("c-phone").value;
+        const address = document.getElementById("c-address").value;
+        let txnId = "";
+
+        if (!name || !phone || !address) {
+          alert("Please fill in delivery details.");
+          return;
+        }
+
+        if (selectedMethod !== "COD") {
+          txnId = document.getElementById("txn-id").value;
+          if (!txnId) {
+            alert(`Please enter the ${selectedMethod} Transaction ID.`);
+            return;
+          }
+        }
+
+        const orderData = {
+          customer: name,
+          phone: phone,
+          address: address,
+          items: cart,
+          total: document.getElementById("grand-total").innerText,
+          date: new Date().toLocaleString(),
+          paymentMethod: selectedMethod,
+          transactionId: txnId || "N/A", // Save Txn ID for Admin
+          status: "Pending Verification",
+        };
+
+        db.ref("orders")
+          .push(orderData)
+          .then(() => {
+            alert(
+              "Order Placed Successfully! We will verify payment and contact you."
+            );
+            localStorage.removeItem("avatarCart");
+            window.location.href = "index.html";
+          });
+      }
+
+      renderCart();
+    </script>
+  </body>
+</html>
