@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Avatar Admin | Order Verification</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <style>
+      body {
+        background-color: #0a0f14;
+        color: #fff;
+        font-family: "Outfit", sans-serif;
+        padding: 40px;
+      }
+      .panel {
+        background: #141b22;
+        border: 1px solid #2d3748;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+      }
+      h3 {
+        border-bottom: 1px solid #333;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        color: #39afc1;
+      }
+
+      /* Table Styles */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        color: #94a3b8;
+        padding: 12px;
+        border-bottom: 1px solid #444;
+        background: #0f151a;
+      }
+      td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #222;
+        vertical-align: top;
+      }
+
+      .pay-tag {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.75rem;
+      }
+      .pay-esewa {
+        background: #60bb46;
+        color: white;
+      }
+      .pay-khalti {
+        background: #5c2d91;
+        color: white;
+      }
+      .pay-cod {
+        background: #ff9900;
+        color: black;
+      }
+
+      .verify-btn {
+        background: #00d26a;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .del-btn {
+        background: #ff0055;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Admin Dashboard</h1>
+
+    <div class="panel">
+      <h3>Incoming Orders & Payment Verification</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Txn ID</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="order-list"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>Inventory</h3>
+      <a href="index.html" style="color: #39afc1">Go to Site</a>
+    </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBSgImWKo8b68SWnoMqKLc2y4peJlp5vlU",
+        authDomain: "avatartech-23cf7.firebaseapp.com",
+        databaseURL: "https://avatartech-23cf7-default-rtdb.firebaseio.com",
+        projectId: "avatartech-23cf7",
+        storageBucket: "avatartech-23cf7.firebasestorage.app",
+        messagingSenderId: "703078443284",
+        appId: "1:703078443284:web:c8fb8148229ed1daa03a01",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Fetch Orders
+      db.ref("orders").on("value", (snap) => {
+        const list = document.getElementById("order-list");
+        list.innerHTML = "";
+        const data = snap.val();
+
+        if (data) {
+          const orders = Object.entries(data).reverse();
+
+          orders.forEach(([key, order]) => {
+            // Payment Styling
+            let payClass = "pay-cod";
+            if (order.paymentMethod === "Esewa") payClass = "pay-esewa";
+            if (order.paymentMethod === "Khalti") payClass = "pay-khalti";
+
+            // Txn Highlighting
+            const txnDisplay =
+              order.transactionId === "N/A"
+                ? '<span style="color:#666;">-</span>'
+                : `<span style="color:#fff; font-family:monospace; background:#333; padding:2px 5px; border-radius:3px;">${order.transactionId}</span>`;
+
+            list.innerHTML += `
+                      <tr>
+                          <td style="color:#888;">${
+                            order.date.split(",")[0]
+                          }</td>
+                          <td>
+                              <b>${order.customer}</b><br>
+                              <small>${order.phone}</small><br>
+                              <small style="color:#666;">${
+                                order.address
+                              }</small>
+                          </td>
+                          <td>${order.items
+                            .map((i) => `${i.qty}x ${i.name}`)
+                            .join("<br>")}</td>
+                          <td style="font-weight:bold; color:#39afc1;">${
+                            order.total
+                          }</td>
+                          <td><span class="pay-tag ${payClass}">${
+              order.paymentMethod
+            }</span></td>
+                          <td>${txnDisplay}</td>
+                          <td>
+                              <button onclick="verifyOrder('${key}')" class="verify-btn" title="Mark Verified/Delivered">✓</button>
+                              <button onclick="delOrder('${key}')" class="del-btn" title="Delete">X</button>
+                          </td>
+                      </tr>
+                  `;
+          });
+        } else {
+          list.innerHTML =
+            "<tr><td colspan='7' style='text-align:center; padding:20px; color:#555;'>No orders found.</td></tr>";
+        }
+      });
+
+      window.verifyOrder = (k) => {
+        if (confirm("Confirm payment verification and mark as Delivered?")) {
+          db.ref("orders/" + k).update({ status: "Verified & Delivered" });
+          alert("Order Status Updated!");
+        }
+      };
+
+      window.delOrder = (k) => {
+        if (confirm("Delete this order permanently?"))
+          db.ref("orders/" + k).remove();
+      };
+    </script>
+  </body>
+</html>
